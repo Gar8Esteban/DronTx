@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 #include <string.h>
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 #include "hardware/i2c.h"
+#include "hardware/gpio.h"
+#include "hardware/timer.h"
+#define LED_PIN 25
 
 //********************************Comandos nRF24***************
 #define NOP 0xFF
@@ -36,6 +40,7 @@ void ModoRx(spi_inst_t* spi);
 void enviarMsg(spi_inst_t* spi, char *msg);
 void recirbirMsg(spi_inst_t* spi, char *msg);
 uint8_t nuevoMsg(spi_inst_t* spi);
+void modoStby(spi_inst_t* spi);
 
 //********************************Variables Globales***********
 const int sck_pin = 10;
@@ -58,6 +63,22 @@ void calculate_angles_from_accel(int16_t eulerAngles[2], int16_t accel[3]);
 void calculate_angles(int16_t eulerAngles[2], int16_t accel[3], int16_t gyro[3], uint64_t usSinceLastReading);
 void convert_to_full(int16_t eulerAngles[2], int16_t accel[3], int16_t fullAngles[2]);
 
+//*********************************Interrupcion por timer******
+int led_value = 0;
+int estado = 0;
+bool repeating_timer_callback(struct repeating_timer *t)
+{
+    led_value = 1 - led_value;
+    gpio_put(LED_PIN, led_value);
+    estado = 1 - estado;
+
+    return true;
+}
+
+char mensaje[32], 
+primerMensaje[32],
+envioMensaje[32];
+
 int main() {
     sleep_ms(100);
     // ***************************************Configuracion antena y spi************
@@ -65,6 +86,13 @@ int main() {
 
     // Initialize chosen serial port
     stdio_init_all();
+
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+
+    struct repeating_timer timer;
+    add_repeating_timer_ms(500, repeating_timer_callback, NULL, &timer);
+    
 
     gpio_init(cs_pin);
     gpio_set_dir(cs_pin, GPIO_OUT);
@@ -82,7 +110,7 @@ int main() {
     gpio_set_function(miso_pin, GPIO_FUNC_SPI);
 
     config(spi);
-    ModoTx(spi);
+    //ModoTx(spi);
 
     // Configuración del i2c y mpu******************************************************************
 
@@ -107,6 +135,16 @@ int main() {
     char buffer[32];
     // Loop forever
     int cont = 0;
+    // Variables para recibir
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN,GPIO_OUT);
+    char recibir;
+    time_t tstart, tend; 
+
+    // Configuracion del timer
+
+    ModoTx(spi);
+
     while (true) {
 
         mpu9250_read_raw_accel(acceleration) ;// Reads the accel and gyro
@@ -123,13 +161,10 @@ int main() {
         sprintf(buffer,"%d %d %d %d %d %d" ,acceleration[0], acceleration[1], acceleration[2], gyro[0], gyro[1], gyro[2]);
         //printf("\nCadena:%s", valor1);
         enviarMsg(spi, buffer);
-        
-        if(cont >= 9){
-            cont = 0;
-        }else{
-            cont++;
-        }
         sleep_ms(100);
+		
+      
+        
     }
     return 0;
 }
@@ -248,6 +283,15 @@ uint8_t nuevoMsg(spi_inst_t* spi){
     uint8_t fifo_status = leerReg(spi, FIFO_STATUS) & 0x01;
     return !fifo_status;
 }
+
+void modoStby(spi_inst_t* spi)
+{
+    if(gpio_get(ce_pin))
+    {
+        ceLow();
+    }
+}
+
 
 // COntexto de las funciones del MPU ************************************************
 

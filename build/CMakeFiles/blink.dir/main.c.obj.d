@@ -17,8 +17,22 @@ CMakeFiles\blink.dir\main.c.obj: D:\Raspberry\DronTx\main.c \
  d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\lock.h \
  d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\stdio.h \
  d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\math.h \
- d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\string.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\time.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\machine\time.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\types.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\_stdint.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\machine\endian.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\machine\_endian.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\select.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\_sigset.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\_timeval.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\timespec.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\_timespec.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\_pthreadtypes.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\sched.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\machine\types.h \
  d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\_locale.h \
+ d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\string.h \
  d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\strings.h \
  d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\string.h \
  D:\Raspberry\RP2040\pico-sdk\src\common\pico_stdlib\include/pico/stdlib.h \
@@ -30,7 +44,6 @@ CMakeFiles\blink.dir\main.c.obj: D:\Raspberry\DronTx\main.c \
  d:\arm\ toolchain\11.3\ rel1\lib\gcc\arm-none-eabi\11.3.1\include\stdint.h \
  d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\stdint.h \
  d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\_intsup.h \
- d:\arm\ toolchain\11.3\ rel1\arm-none-eabi\include\sys\_stdint.h \
  D:\Raspberry\DronTx\build\generated\pico_base/pico/version.h \
  D:\Raspberry\RP2040\pico-sdk\src\common\pico_base\include/pico/config.h \
  D:\Raspberry\DronTx\build\generated\pico_base/pico/config_autogen.h \
