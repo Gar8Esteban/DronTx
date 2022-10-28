@@ -7,7 +7,18 @@
 #include "hardware/i2c.h"
 #include "hardware/gpio.h"
 #include "hardware/timer.h"
+#include "hardware/pwm.h"
 #define LED_PIN 25
+//********************************PWM**************************
+#define MOTOR_UNO 0
+#define MOTOR_DOS 15
+#define MOTOR_TRES 16
+#define MOTOR_CUATRO 28
+
+//********************************Funciones PWM****************
+
+void Conf_PWM(uint motor, uint channel, uint slice_num);
+void set_pwm(int P_Pwm1, int P_Pwm2,int P_Pwm3,int P_Pwm4 );
 
 //********************************Comandos nRF24***************
 #define NOP 0xFF
@@ -79,6 +90,18 @@ char mensaje[32],
 primerMensaje[32],
 envioMensaje[32];
 
+//***********************************Codigo ultrasonido*****************************
+
+int timeout = 26100;
+uint trigPin = 2;
+uint echoPin = 3;
+
+//***********************************Funciones Ultrasonido**************************
+
+float getCm(uint trigPin, uint echoPin);
+int getPulse(uint trigPin, uint echoPin);
+void setupUltrasonicPins(uint trigPin, uint echoPin);
+
 int main() {
     sleep_ms(100);
     // ***************************************Configuracion antena y spi************
@@ -86,6 +109,11 @@ int main() {
 
     // Initialize chosen serial port
     stdio_init_all();
+
+    Conf_PWM(MOTOR_UNO,PWM_CHAN_A,0);
+    Conf_PWM(MOTOR_DOS, PWM_CHAN_B,7);
+    Conf_PWM(MOTOR_TRES,PWM_CHAN_A,0);
+    Conf_PWM(MOTOR_CUATRO, PWM_CHAN_A,6);
 
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
@@ -141,9 +169,15 @@ int main() {
     char recibir;
     time_t tstart, tend; 
 
-    // Configuracion del timer
+    // Configuracion del PWM
 
     ModoTx(spi);
+    int contPWM = 0; 
+    int valorPWM = 10;
+
+    // Configuración Ultrasonido
+
+    setupUltrasonicPins(trigPin, echoPin);
 
     while (true) {
 
@@ -158,9 +192,26 @@ int main() {
         timeOfLastCheck = get_absolute_time ();
         convert_to_full (eulerAngles , acceleration , fullAngles);
 
+        printf("\n %d cm",getPulse(trigPin, echoPin));
+
         sprintf(buffer,"%d %d %d %d %d %d" ,acceleration[0], acceleration[1], acceleration[2], gyro[0], gyro[1], gyro[2]);
         //printf("\nCadena:%s", valor1);
         enviarMsg(spi, buffer);
+        contPWM++;
+
+
+        if (contPWM > 100)
+        {
+            valorPWM = 30;
+            set_pwm(valorPWM, valorPWM, valorPWM, valorPWM);
+        }else if(contPWM < 100)
+        {
+            valorPWM = 10;
+            set_pwm(valorPWM, valorPWM, valorPWM, valorPWM);
+        }
+
+        printf("Contador: %d\n", valorPWM);
+        
         sleep_ms(100);
 		
       
@@ -393,4 +444,76 @@ void convert_to_full(int16_t eulerAngles[2], int16_t accel[3], int16_t fullAngle
     if (accel[0] < 0 && accel[2] < 0) fullAngles[1] = 180 - eulerAngles[1];
     if (accel[0] > 0 && accel[2] < 0) fullAngles[1] = 180 - eulerAngles[1];
     if (accel[0] > 0 && accel[2] > 0) fullAngles[1] = 360 + eulerAngles[1];
+}
+
+//********************************************Funciones del pwm****************
+void Conf_PWM(uint motor, uint channel, uint slice_num)
+{
+    pwm_set_clkdiv(slice_num,38.3);   //divisor de frecuencia (125MHZ)/10
+    pwm_set_wrap(slice_num,65465);      // Valor que se reinicia el contador (0-65535)-top register
+    pwm_set_chan_level(slice_num,channel,0); //inicia la comparación en cero
+    pwm_set_enabled(slice_num,true);
+    gpio_set_function(motor, GPIO_FUNC_PWM);
+}
+
+void set_pwm(int P_Pwm1, int P_Pwm2,int P_Pwm3,int P_Pwm4 )
+{
+
+
+        int frecuencia1 = 32.74*P_Pwm1 +3273;
+        int frecuencia2 = 32.74*P_Pwm2 +3273;
+        int frecuencia3 = 32.74*P_Pwm3 +3273;
+        int frecuencia4 = 32.74*P_Pwm4 +3273;
+        
+        pwm_set_chan_level(7,PWM_CHAN_A,frecuencia1);
+        pwm_set_chan_level(7,PWM_CHAN_B,frecuencia2);
+        pwm_set_chan_level(0,PWM_CHAN_A,frecuencia3);
+        pwm_set_chan_level(0,PWM_CHAN_B,frecuencia4);
+
+
+}
+
+//**************************************Contexto Ultrasonido****************************************
+
+void setupUltrasonicPins(uint trigPin, uint echoPin)
+{
+    gpio_init(trigPin);
+    gpio_init(echoPin);
+    
+    gpio_set_dir(trigPin, GPIO_OUT);
+    gpio_set_dir(echoPin, GPIO_IN);
+
+    gpio_pull_up(echoPin);
+}
+
+
+
+int getPulse(uint trigPin, uint echoPin)
+{
+ 
+    gpio_put(trigPin, 1);
+    sleep_us(10);
+    gpio_put(trigPin, 0);
+
+    uint64_t width = 0;
+
+    while (gpio_get(echoPin) == 0) tight_loop_contents();
+    absolute_time_t startTime = get_absolute_time();
+    while (gpio_get(echoPin) == 1) 
+    {
+       
+        sleep_us(1);
+        if (width > timeout) return 0;
+    }
+    absolute_time_t endTime = get_absolute_time();
+    
+    return absolute_time_diff_us(startTime, endTime)/59/100;
+}
+    
+
+
+float getCm(uint trigPin, uint echoPin)
+{
+    uint32_t  pulseLength = getPulse(trigPin, echoPin);
+    return pulseLength;
 }

@@ -2863,6 +2863,9 @@ CMakeFiles\blink.dir\main.c.obj: D:\Raspberry\RP2040\pico-sdk\src\rp2040\hardwar
 CMakeFiles\blink.dir\main.c.obj: D:\Raspberry\RP2040\pico-sdk\src\rp2_common\hardware_i2c\include\hardware\i2c.h
 CMakeFiles\blink.dir\main.c.obj: D:\Raspberry\RP2040\pico-sdk\src\rp2040\hardware_structs\include\hardware\structs\i2c.h
 CMakeFiles\blink.dir\main.c.obj: D:\Raspberry\RP2040\pico-sdk\src\rp2040\hardware_regs\include\hardware\regs\i2c.h
+CMakeFiles\blink.dir\main.c.obj: D:\Raspberry\RP2040\pico-sdk\src\rp2_common\hardware_pwm\include\hardware\pwm.h
+CMakeFiles\blink.dir\main.c.obj: D:\Raspberry\RP2040\pico-sdk\src\rp2040\hardware_structs\include\hardware\structs\pwm.h
+CMakeFiles\blink.dir\main.c.obj: D:\Raspberry\RP2040\pico-sdk\src\rp2040\hardware_regs\include\hardware\regs\pwm.h
 
 
 
@@ -3202,6 +3205,8 @@ D:\Raspberry\RP2040\pico-sdk\src\rp2_common\hardware_gpio\gpio.c:
 
 D:\Raspberry\RP2040\pico-sdk\src\rp2_common\hardware_i2c\i2c.c:
 
+D:\Raspberry\RP2040\pico-sdk\src\rp2040\hardware_structs\include\hardware\structs\pwm.h:
+
 D:\Raspberry\RP2040\pico-sdk\src\rp2_common\hardware_i2c\include\hardware\i2c.h:
 
 D:\Raspberry\RP2040\pico-sdk\src\rp2040\hardware_structs\include\hardware\structs\i2c.h:
@@ -3327,3 +3332,7 @@ D:\Raspberry\RP2040\pico-sdk\src\rp2_common\pico_unique_id\unique_id.c:
 "D:\ARM toolchain\11.3 rel1\arm-none-eabi\include\sys\_pthreadtypes.h":
 
 "D:\ARM toolchain\11.3 rel1\arm-none-eabi\include\sys\sched.h":
+
+D:\Raspberry\RP2040\pico-sdk\src\rp2_common\hardware_pwm\include\hardware\pwm.h:
+
+D:\Raspberry\RP2040\pico-sdk\src\rp2040\hardware_regs\include\hardware\regs\pwm.h:

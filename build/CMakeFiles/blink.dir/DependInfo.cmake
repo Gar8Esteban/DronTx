@@ -117,6 +117,7 @@ set(CMAKE_ASM_TARGET_INCLUDE_PATH
   "D:/Raspberry/RP2040/pico-sdk/src/common/pico_usb_reset_interface/include"
   "D:/Raspberry/RP2040/pico-sdk/src/rp2_common/hardware_spi/include"
   "D:/Raspberry/RP2040/pico-sdk/src/rp2_common/hardware_i2c/include"
+  "D:/Raspberry/RP2040/pico-sdk/src/rp2_common/hardware_pwm/include"
   )
 
 # The set of dependency files which are needed:
