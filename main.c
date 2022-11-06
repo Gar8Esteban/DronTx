@@ -74,21 +74,6 @@ void calculate_angles_from_accel(int16_t eulerAngles[2], int16_t accel[3]);
 void calculate_angles(int16_t eulerAngles[2], int16_t accel[3], int16_t gyro[3], uint64_t usSinceLastReading);
 void convert_to_full(int16_t eulerAngles[2], int16_t accel[3], int16_t fullAngles[2]);
 
-//*********************************Interrupcion por timer******
-int led_value = 0;
-int estado = 0;
-bool repeating_timer_callback(struct repeating_timer *t)
-{
-    led_value = 1 - led_value;
-    gpio_put(LED_PIN, led_value);
-    estado = 1 - estado;
-
-    return true;
-}
-
-char mensaje[32], 
-primerMensaje[32],
-envioMensaje[32];
 
 //***********************************Codigo ultrasonido*****************************
 
@@ -101,6 +86,43 @@ uint echoPin = 3;
 float getCm(uint trigPin, uint echoPin);
 int getPulse(uint trigPin, uint echoPin);
 void setupUltrasonicPins(uint trigPin, uint echoPin);
+
+//*********************************Interrupcion por timer******
+int cont = 0;
+bool banderaEnvio, banderaRx=false;
+int contTx = 0;
+bool repeating_timer_callback(struct repeating_timer *t)
+{
+    
+    if (cont < 100)
+    {
+        banderaEnvio = false;
+        gpio_put(LED_PIN, 0);
+        cont++;
+    }else
+    {
+        banderaEnvio = true;
+        gpio_put(LED_PIN, 1);
+        if (contTx == 5)
+        {
+            banderaRx = true;
+            contTx = 0;
+        }else
+        {
+            banderaRx = false;
+            contTx++;
+        }
+        cont = 0;
+    }
+    
+     
+    return true;
+}
+
+char mensaje[32], 
+primerMensaje[32],
+envioMensaje[32];
+
 
 int main() {
     sleep_ms(100);
@@ -115,12 +137,9 @@ int main() {
     Conf_PWM(MOTOR_TRES,PWM_CHAN_A,0);
     Conf_PWM(MOTOR_CUATRO, PWM_CHAN_A,6);
 
+
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
-
-    struct repeating_timer timer;
-    add_repeating_timer_ms(500, repeating_timer_callback, NULL, &timer);
-    
 
     gpio_init(cs_pin);
     gpio_set_dir(cs_pin, GPIO_OUT);
@@ -171,50 +190,48 @@ int main() {
 
     // Configuracion del PWM
 
-    ModoTx(spi);
+
     int contPWM = 0; 
     int valorPWM = 10;
 
     // Configuración Ultrasonido
 
     setupUltrasonicPins(trigPin, echoPin);
+    int distancia = 0;
 
-    while (true) {
+    // COnfiguración del timer 
+    struct repeating_timer timer;
+    add_repeating_timer_ms(1, repeating_timer_callback, NULL, &timer);
+    bool flagEnvio1;
+//Configuración inicial de la antena
+    ModoTx(spi);
+    while(true)
+    {
 
-        mpu9250_read_raw_accel(acceleration) ;// Reads the accel and gyro
-        mpu9250_read_raw_gyro (gyro) ;
-
-        gyro [ 0 ] -= gyroCal [ 0 ] ; // Aplica la calibración
-        gyro [ 1 ] -= gyroCal [ 1 ] ;
-        gyro [ 2 ] -= gyroCal [ 2 ] ;
-
-        calculate_angles ( eulerAngles , acceleration , gyro , absolute_time_diff_us ( timeOfLastCheck , get_absolute_time())); // Calculates the angle
-        timeOfLastCheck = get_absolute_time ();
-        convert_to_full (eulerAngles , acceleration , fullAngles);
-
-        printf("\n %d cm",getPulse(trigPin, echoPin));
-
-        sprintf(buffer,"%d %d %d %d %d %d" ,acceleration[0], acceleration[1], acceleration[2], gyro[0], gyro[1], gyro[2]);
-        //printf("\nCadena:%s", valor1);
-        enviarMsg(spi, buffer);
-        contPWM++;
-
-
-        if (contPWM > 100)
+         if (!banderaEnvio)
         {
-            valorPWM = 30;
-            set_pwm(valorPWM, valorPWM, valorPWM, valorPWM);
-        }else if(contPWM < 100)
-        {
-            valorPWM = 10;
-            set_pwm(valorPWM, valorPWM, valorPWM, valorPWM);
+            mpu9250_read_raw_accel(acceleration);
+            mpu9250_read_raw_gyro (gyro);
+            gyro [ 0 ] -= gyroCal [ 0 ] ; // Aplica la calibración
+            gyro [ 1 ] -= gyroCal [ 1 ] ;
+            gyro [ 2 ] -= gyroCal [ 2 ] ;
+
+            calculate_angles ( eulerAngles , acceleration , gyro , absolute_time_diff_us ( timeOfLastCheck , get_absolute_time())); // Calculates the angle
+            timeOfLastCheck = get_absolute_time ();
+            convert_to_full (eulerAngles , acceleration , fullAngles);
+            distancia = getPulse(trigPin, echoPin);
+            flagEnvio1 = true;
         }
-
-        printf("Contador: %d\n", valorPWM);
+        else
+        {
+            if (flagEnvio1)// asegura que el envío se hago solo 1 vez cada 100ms
+            {
+                sprintf(buffer,"%d %d %d %d %d %d %d" ,acceleration[0], acceleration[1], acceleration[2], gyro[0], gyro[1], gyro[2], distancia);
+                enviarMsg(spi, buffer);
+                flagEnvio1 = false;
+            }
+        }
         
-        sleep_ms(100);
-		
-      
         
     }
     return 0;
@@ -377,7 +394,7 @@ void mpu9250_read_raw_gyro(int16_t gyro[3]) {  //Used to get the raw gyro values
 
 
     for (int i = 0; i < 3; i++) {
-        gyro[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);;
+        gyro[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
     }
 }
 
@@ -507,7 +524,7 @@ int getPulse(uint trigPin, uint echoPin)
     }
     absolute_time_t endTime = get_absolute_time();
     
-    return absolute_time_diff_us(startTime, endTime)/59/100;
+    return absolute_time_diff_us(startTime, endTime)/59;
 }
     
 
