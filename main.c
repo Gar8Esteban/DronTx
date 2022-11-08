@@ -87,6 +87,7 @@ float getCm(uint trigPin, uint echoPin);
 int getPulse(uint trigPin, uint echoPin);
 void setupUltrasonicPins(uint trigPin, uint echoPin);
 
+
 //*********************************Interrupcion por timer******
 int cont = 0;
 bool banderaEnvio, banderaRx=false;
@@ -205,6 +206,7 @@ int main() {
     bool flagEnvio1;
 //Configuración inicial de la antena
     ModoTx(spi);
+    set_pwm(40,40,40,40);
     while(true)
     {
 
@@ -221,6 +223,8 @@ int main() {
             convert_to_full (eulerAngles , acceleration , fullAngles);
             distancia = getPulse(trigPin, echoPin);
             flagEnvio1 = true;
+            printf("\n Dist=%d ", distancia);
+            
         }
         else
         {
@@ -513,12 +517,10 @@ int getPulse(uint trigPin, uint echoPin)
     gpio_put(trigPin, 0);
 
     uint64_t width = 0;
-
     while (gpio_get(echoPin) == 0) tight_loop_contents();
     absolute_time_t startTime = get_absolute_time();
     while (gpio_get(echoPin) == 1) 
     {
-       
         sleep_us(1);
         if (width > timeout) return 0;
     }
